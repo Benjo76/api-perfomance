@@ -20,21 +20,23 @@ class PerformanceChecker():
 
     def run(self):
         """ Run the performance check """
+        load_dotenv()
         parser = argparse.ArgumentParser(description="Check the performance of an API route.")
         parser.add_argument("url", nargs="?", help="The URL of the API route to check.")
         parser.add_argument("-c", "--count", type=int, default=5, help="Number of requests (default: 5).")
             
         args = parser.parse_args()
-        load_dotenv()
-        url = args.url or os.getenv("BASE_URL")
-        api_key = os.getenv("API_KEY")
         
+        url = args.url
+    
         if not url:
             parser.error("provide a URL argument or set BASE_URL in .env")
     
         if not url.startswith("http"):
             print("Error: The URL must start with http:// or https://.")
             sys.exit(1)
+
+        api_key = os.getenv("API_KEY")
 
         if not api_key:
             print("INFO: You might be unathorized without an API key. Consider setting the API_KEY in your .env file.")
