@@ -3,18 +3,22 @@ import time
 import argparse
 import statistics
 import sys
+import os
+from dotenv import load_dotenv
 
-def check_performance(url, count):
+def check_performance(url, count, api_key=None):
+    """ Check the performance of an API route by sending multiple requests """
     print("Checking performance for: %s" % url)
     print("Number of requests: %d" % count)
     print("-" * 40)
 
     latencies = []
+    headers = {"X-API-Key": api_key} if api_key else {}
     
     for i in range(count):
         try:
             start_time = time.perf_counter()
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, headers=headers, timeout=10)
             end_time = time.perf_counter()
             
             latency = (end_time - start_time) * 1000  # in milliseconds
@@ -38,16 +42,22 @@ def check_performance(url, count):
 
 def main():
     parser = argparse.ArgumentParser(description="Check the performance of an API route.")
-    parser.add_argument("url", help="The URL of the API route to check.")
+    parser.add_argument("url", nargs="?", help="The URL of the API route to check.")
     parser.add_argument("-c", "--count", type=int, default=5, help="Number of requests (default: 5).")
     
     args = parser.parse_args()
+    load_dotenv()
+    url = args.url or os.getenv("BASE_URL")
+    api_key = os.getenv("API_KEY")
     
-    if not args.url.startswith("http"):
+    if not url:
+        parser.error("provide a URL argument or set BASE_URL in .env")
+
+    if not url.startswith("http"):
         print("Error: The URL must start with http:// or https://.")
         sys.exit(1)
         
-    check_performance(args.url, args.count)
+    check_performance(url, args.count, api_key)
 
 if __name__ == "__main__":
     main()
